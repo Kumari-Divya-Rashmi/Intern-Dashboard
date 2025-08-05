@@ -1,18 +1,13 @@
-{ 
+{
   "name": "intern-dashboard",
   "version": "1.0.0",
-  "main": "index.js",
+  "private": true,
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "nodemon backend/server.js",
-    "client": "npm start --prefix frontend"
+    "server": "cd backend && npm start",
+    "client": "cd frontend && npm start"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "devDependencies": {
-    "concurrently": "^9.2.0",
-    "nodemon": "^3.1.10"
+    "concurrently": "^9.2.0"
   }
 }
