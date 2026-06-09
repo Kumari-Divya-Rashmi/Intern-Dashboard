@@ -1,0 +1,220 @@
+Method:
+
+GET
+
+URL:
+
+http://localhost:5000
+
+Expected response:
+
+{
+  "success": true,
+  "message": "Intern Dashboard API is running"
+}
+
+Say:
+
+This confirms my backend server is running.
+
+2. Register Intern API
+
+Method:
+
+POST
+
+URL:
+
+http://localhost:5000/api/auth/register
+
+Body → raw → JSON:
+
+{
+  "name": "Kaushal Raj",
+  "email": "kaushal@example.com",
+  "password": "123456",
+  "role": "intern"
+}
+
+Expected response:
+
+{
+  "success": true,
+  "message": "User registered successfully",
+  "token": "...",
+  "user": {
+    "id": "...",
+    "name": "Kaushal Raj",
+    "email": "kaushal@example.com",
+    "role": "intern",
+    "referralCode": "kaushalraj5577"
+  }
+}
+
+Say:
+
+This API creates a new intern. The password is hashed before saving to MongoDB.
+
+If it says user already exists, change email:
+
+{
+  "name": "Kaushal Raj",
+  "email": "kaushal2@example.com",
+  "password": "123456",
+  "role": "intern"
+}
+3. Login API
+
+Method:
+
+POST
+
+URL:
+
+http://localhost:5000/api/auth/login
+
+Body:
+
+{
+  "email": "kaushal@example.com",
+  "password": "123456"
+}
+
+Expected response:
+
+{
+  "success": true,
+  "message": "Login successful",
+  "token": "...",
+  "user": {
+    "id": "...",
+    "name": "Kaushal Raj",
+    "email": "kaushal@example.com",
+    "role": "intern"
+  }
+}
+
+Say:
+
+This API checks the email and password. If credentials are valid, it returns a JWT token.
+
+Copy the token.
+
+4. Test Protected Intern Dashboard API
+
+Method:
+
+GET
+
+URL:
+
+http://localhost:5000/api/intern/me
+
+Go to:
+
+Authorization → Type → Bearer Token
+
+Paste the token.
+
+Expected response: intern dashboard data.
+
+Say:
+
+This is a protected API. Without token, it will not return user data.
+
+5. Test Leaderboard API
+
+Method:
+
+GET
+
+URL:
+
+http://localhost:5000/api/intern/leaderboard
+
+Authorization:
+
+Bearer Token
+
+Expected response: list of interns sorted by donations.
+
+Say:
+
+This API fetches leaderboard data from MongoDB.
+
+Admin Testing Flow
+
+If interviewer asks admin functionality, show this.
+
+6. Register Admin
+
+Method:
+
+POST
+
+URL:
+
+http://localhost:5000/api/auth/register
+
+Body:
+
+{
+  "name": "Admin User",
+  "email": "admin@example.com",
+  "password": "123456",
+  "role": "admin"
+}
+7. Login Admin
+
+Method:
+
+POST
+
+URL:
+
+http://localhost:5000/api/auth/login
+
+Body:
+
+{
+  "email": "admin@example.com",
+  "password": "123456"
+}
+
+Copy admin token.
+
+8. Get All Interns
+
+Method:
+
+GET
+
+URL:
+
+http://localhost:5000/api/admin/interns
+
+Authorization:
+
+Bearer Token → paste admin token
+
+Say:
+
+This route is accessible only by admin users.
+
+Copy one intern _id.
+
+9. Update Donation
+
+Method:
+
+PATCH
+
+URL:
+
+http://localhost:5000/api/admin/interns/PASTE_INTERN_ID/donation
+
+Body:
+
+{
+  "amount": 5000
+}

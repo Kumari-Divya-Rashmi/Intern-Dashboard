@@ -4,6 +4,7 @@ const {
   getAllInterns,
   updateDonation,
   updateReward,
+  getAdminAnalytics,
 } = require("../controllers/adminController");
 
 const { protect, adminOnly } = require("../middleware/authMiddleware");
@@ -14,6 +15,7 @@ router.use(protect);
 router.use(adminOnly);
 
 router.get("/interns", getAllInterns);
+router.get("/analytics", getAdminAnalytics);
 router.patch("/interns/:id/donation", updateDonation);
 router.patch("/interns/:id/reward", updateReward);
 

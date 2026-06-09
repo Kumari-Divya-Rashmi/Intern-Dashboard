@@ -14,6 +14,13 @@ export const apiRequest = async (endpoint, options = {}) => {
 
   const data = await response.json();
 
+  if (response.status === 401) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.reload();
+    throw new Error("Session expired. Please login again.");
+  }
+
   if (!response.ok) {
     throw new Error(data.message || "Something went wrong");
   }

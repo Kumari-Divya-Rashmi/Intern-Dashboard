@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import Login from "./pages/Login";
 import InternDashboard from "./pages/InternDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -26,6 +27,10 @@ function App() {
 
   if (!user) {
     return <Login onLogin={handleLogin} />;
+  }
+
+  if (user.role === "admin") {
+    return <AdminDashboard user={user} onLogout={handleLogout} />;
   }
 
   return <InternDashboard user={user} onLogout={handleLogout} />;
