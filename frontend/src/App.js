@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
+
 import "./App.css";
 import Login from "./pages/Login";
 import InternDashboard from "./pages/InternDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-function App() {
+function AppRoutes() {
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -17,23 +27,112 @@ function App() {
 
   const handleLogin = (loggedInUser) => {
     setUser(loggedInUser);
+
+    if (loggedInUser.role === "admin") {
+      navigate("/admin/dashboard");
+    } else {
+      navigate("/intern/dashboard");
+    }
   };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
+    navigate("/login");
   };
 
-  if (!user) {
-    return <Login onLogin={handleLogin} />;
-  }
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/login" replace />} />
 
-  if (user.role === "admin") {
-    return <AdminDashboard user={user} onLogout={handleLogout} />;
-  }
+      <Route path="/login" element={<Login onLogin={handleLogin} />} />
 
-  return <InternDashboard user={user} onLogout={handleLogout} />;
+      <Route
+        path="/intern/dashboard"
+        element={
+          <ProtectedRoute allowedRole="intern">
+            <InternDashboard user={user} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/dashboard"
+        element={
+          <ProtectedRoute allowedRole="admin">
+            <AdminDashboard
+              user={user}
+              onLogout={handleLogout}
+              activePage="admin"
+            />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/interns"
+        element={
+          <ProtectedRoute allowedRole="admin">
+            <AdminDashboard
+              user={user}
+              onLogout={handleLogout}
+              activePage="interns"
+            />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/analytics"
+        element={
+          <ProtectedRoute allowedRole="admin">
+            <AdminDashboard
+              user={user}
+              onLogout={handleLogout}
+              activePage="analytics"
+            />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/activity"
+        element={
+          <ProtectedRoute allowedRole="admin">
+            <AdminDashboard
+              user={user}
+              onLogout={handleLogout}
+              activePage="activity"
+            />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/profile"
+        element={
+          <ProtectedRoute allowedRole="admin">
+            <AdminDashboard
+              user={user}
+              onLogout={handleLogout}
+              activePage="profile"
+            />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  );
 }
 
 export default App;

@@ -1,96 +1,88 @@
 const express = require("express");
 const cors = require("cors");
+require("dotenv").config();
+
+const connectDB = require("./config/db");
+
+const authRoutes = require("./routes/authRoutes");
+const internRoutes = require("./routes/internRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
+
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+/* -------------------- Database Connection -------------------- */
+
+connectDB();
+
+/* -------------------- CORS Configuration -------------------- */
+
+const allowedOrigins = [
+  "http://localhost:3000",
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow Postman, mobile apps, server-to-server requests
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
+
+/* -------------------- Middlewares -------------------- */
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-const interns = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    role: "Frontend Intern",
-    referralCode: "JOHN2025",
-    totalDonations: 12345,
-    targetAmount: 20000,
-    tasksCompleted: 8,
-    totalTasks: 12,
-    rank: 2,
-    rewards: [
-      { title: "Certificate", unlocked: true },
-      { title: "Gift Card", unlocked: true },
-      { title: "LinkedIn Recommendation", unlocked: false },
-    ],
-  },
-];
-
-const leaderboard = [
-  { id: 1, name: "Aarav Sharma", totalDonations: 18500 },
-  { id: 2, name: "John Doe", totalDonations: 12345 },
-  { id: 3, name: "Priya Singh", totalDonations: 9700 },
-];
+/* -------------------- Health Check Route -------------------- */
 
 app.get("/", (req, res) => {
-  res.json({
+  res.status(200).json({
     success: true,
     message: "Intern Dashboard API is running",
+    environment: process.env.NODE_ENV || "development",
   });
 });
 
-app.get("/api/intern/:id", (req, res) => {
-  const internId = Number(req.params.id);
-  const intern = interns.find((item) => item.id === internId);
+/* -------------------- API Routes -------------------- */
 
-  if (!intern) {
-    return res.status(404).json({
-      success: false,
-      message: "Intern not found",
-    });
-  }
+app.use("/api/auth", authRoutes);
+app.use("/api/intern", internRoutes);
+app.use("/api/admin", adminRoutes);
 
-  res.json({
-    success: true,
-    data: intern,
+/* -------------------- 404 Handler -------------------- */
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
   });
 });
 
-app.get("/api/leaderboard", (req, res) => {
-  res.json({
-    success: true,
-    data: leaderboard,
+/* -------------------- Global Error Handler -------------------- */
+
+app.use((error, req, res, next) => {
+  console.error("Server Error:", error.message);
+
+  res.status(error.statusCode || 500).json({
+    success: false,
+    message: error.message || "Internal Server Error",
   });
 });
 
-app.post("/api/donations", (req, res) => {
-  const { internId, amount } = req.body;
-
-  if (!internId || !amount || amount <= 0) {
-    return res.status(400).json({
-      success: false,
-      message: "Intern ID and valid donation amount are required",
-    });
-  }
-
-  const intern = interns.find((item) => item.id === Number(internId));
-
-  if (!intern) {
-    return res.status(404).json({
-      success: false,
-      message: "Intern not found",
-    });
-  }
-
-  intern.totalDonations += Number(amount);
-
-  res.status(201).json({
-    success: true,
-    message: "Donation added successfully",
-    data: intern,
-  });
-});
+/* -------------------- Start Server -------------------- */
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { apiRequest } from "../services/api";
+import DashboardLayout from "../components/layout/DashboardLayout";
 
 function InternDashboard({ user, onLogout }) {
   const [intern, setIntern] = useState(null);
@@ -18,7 +19,7 @@ function InternDashboard({ user, onLogout }) {
       const leaderboardData = await apiRequest("/api/intern/leaderboard");
 
       setIntern(internData.data);
-      setLeaderboard(leaderboardData.data);
+      setLeaderboard(leaderboardData.data || []);
     } catch (error) {
       setError(error.message || "Failed to load dashboard");
     } finally {
@@ -52,17 +53,38 @@ function InternDashboard({ user, onLogout }) {
 
   if (error) {
     return (
-      <div className="page-status error">
-        <div>
+      <DashboardLayout
+        user={user}
+        onLogout={onLogout}
+        title="Intern Dashboard"
+        subtitle="Track your referral code, donations, rewards, and leaderboard rank."
+        activePage="intern"
+      >
+        <div className="state-card error-state">
+          <h3>Something went wrong</h3>
           <p>{error}</p>
           <button onClick={fetchDashboard}>Try Again</button>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   if (!intern) {
-    return <div className="page-status">Loading dashboard...</div>;
+    return (
+      <DashboardLayout
+        user={user}
+        onLogout={onLogout}
+        title="Intern Dashboard"
+        subtitle="Track your referral code, donations, rewards, and leaderboard rank."
+        activePage="intern"
+      >
+        <div className="state-card">
+          <div className="loader"></div>
+          <h3>Loading dashboard...</h3>
+          <p>Please wait while we fetch your latest data.</p>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   const totalDonations = intern.totalDonations || 0;
@@ -83,22 +105,17 @@ function InternDashboard({ user, onLogout }) {
   const remainingAmount = Math.max(targetAmount - totalDonations, 0);
 
   return (
-    <main className="dashboard-page">
-      <section className="dashboard-header">
-        <div>
-          <p className="eyebrow">Intern Dashboard</p>
-          <h1>Welcome, {intern.name}</h1>
-          <p className="subtitle">
-            Track your donations, referral code, rewards, and leaderboard rank.
-          </p>
-        </div>
-
-        <div className="header-actions">
-          <button onClick={fetchDashboard} disabled={refreshing}>
-            {refreshing ? "Refreshing..." : "Refresh"}
-          </button>
-          <button onClick={onLogout}>Logout</button>
-        </div>
+    <DashboardLayout
+      user={user}
+      onLogout={onLogout}
+      title="Intern Dashboard"
+      subtitle="Track your referral code, donations, rewards, and leaderboard rank."
+      activePage="intern"
+    >
+      <section className="intern-action-row">
+        <button onClick={fetchDashboard} disabled={refreshing}>
+          {refreshing ? "Refreshing..." : "Refresh Dashboard"}
+        </button>
       </section>
 
       <section className="stats-grid">
@@ -132,7 +149,7 @@ function InternDashboard({ user, onLogout }) {
         <div className="stat-card">
           <p>Role</p>
           <h2>{intern.role}</h2>
-          <span>Logged in as {user.email}</span>
+          <span>Logged in as {user?.email}</span>
         </div>
       </section>
 
@@ -171,6 +188,7 @@ function InternDashboard({ user, onLogout }) {
         <div className="panel">
           <div className="panel-header">
             <h3>Rewards</h3>
+
             <button
               className="small-action-btn"
               onClick={() => setShowRewardsInfo(!showRewardsInfo)}
@@ -185,6 +203,7 @@ function InternDashboard({ user, onLogout }) {
                 Rewards are unlocked based on donation progress and admin
                 verification.
               </p>
+
               <ul>
                 <li>Certificate: Basic participation completion</li>
                 <li>Gift Card: Good fundraising performance</li>
@@ -194,9 +213,10 @@ function InternDashboard({ user, onLogout }) {
           )}
 
           <div className="reward-list">
-            {intern.rewards.map((reward) => (
+            {(intern.rewards || []).map((reward) => (
               <div className="reward-item" key={reward.title}>
                 <span>{reward.title}</span>
+
                 <strong className={reward.unlocked ? "unlocked" : "locked"}>
                   {reward.unlocked ? "Unlocked" : "Locked"}
                 </strong>
@@ -218,7 +238,9 @@ function InternDashboard({ user, onLogout }) {
               leaderboard.map((item, index) => (
                 <div className="leaderboard-item" key={item._id}>
                   <span>#{index + 1}</span>
+
                   <p>{item.name}</p>
+
                   <strong>
                     ₹{(item.totalDonations || 0).toLocaleString("en-IN")}
                   </strong>
@@ -228,7 +250,7 @@ function InternDashboard({ user, onLogout }) {
           </div>
         </div>
       </section>
-    </main>
+    </DashboardLayout>
   );
 }
 

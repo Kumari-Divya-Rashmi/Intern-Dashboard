@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL;
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 export const apiRequest = async (endpoint, options = {}) => {
   const token = localStorage.getItem("token");
@@ -12,13 +13,23 @@ export const apiRequest = async (endpoint, options = {}) => {
     },
   });
 
+  const contentType = response.headers.get("content-type");
+
+  if (!contentType || !contentType.includes("application/json")) {
+    const text = await response.text();
+    console.error("Non-JSON response received:", text);
+
+    throw new Error(
+      `Backend did not return JSON. Check API URL: ${API_BASE_URL}${endpoint}`
+    );
+  }
+
   const data = await response.json();
 
   if (response.status === 401) {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    window.location.reload();
-    throw new Error("Session expired. Please login again.");
+    throw new Error("Session expired or token invalid. Please login again.");
   }
 
   if (!response.ok) {
